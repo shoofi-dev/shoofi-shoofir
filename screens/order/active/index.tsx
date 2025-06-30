@@ -83,17 +83,6 @@ const AtiveOrdersScreen = ({ route }) => {
     });
   }
 
-  useEffect(() => {
-    setIsLoading(true);
-      getOrders();
-      setTimeout(() => {
-        getOrders();
-      }, 15 * 1000);
-      const interval = setInterval(() => {
-        getOrders();
-      }, 30 * 1000);
-      return () => clearInterval(interval);
-  }, []);
 
   const onScrollEnd = ({ nativeEvent }) => {
     const paddingToBottom = 2000;

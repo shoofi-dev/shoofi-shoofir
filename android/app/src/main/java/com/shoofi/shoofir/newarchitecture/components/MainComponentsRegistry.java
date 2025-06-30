@@ -1,4 +1,4 @@
-package com.shoofi.shopping.newarchitecture.components;
+package com.shoofi.shoofir.newarchitecture.components;
 
 import com.facebook.jni.HybridData;
 import com.facebook.proguard.annotations.DoNotStrip;

@@ -69,7 +69,7 @@ const HomeScreen = ({ navigation }) => {
     authStore,
     storeDataStore,
     adminCustomerStore,
-    shoofiAdminStore
+    shoofiAdminStore,
   } = useContext(StoreContext);
   const [categoryList, setCategoryList] = useState(null);
 
@@ -77,16 +77,20 @@ const HomeScreen = ({ navigation }) => {
   const cities = shoofiAdminStore?.storeData?.cities || [];
 
   const displayTemrsAndConditions = async () => {
+    if (!authStore.isLoggedIn()) {
+      setTimeout(() => {
+        navigation.navigate("login");
+      }, 0);
+    }
     // if (!userDetailsStore.isAcceptedTerms) {
     //   setTimeout(() => {
     //     navigation.navigate("terms-and-conditions");
     //   }, 0);
     // }
-    if(userDetailsStore.isDriver()){
       setTimeout(() => {
         navigation.navigate("delivery-driver-dashboard");
       }, 0);
-    }
+    
     setIsAppReady(true);
     // setTimeout(() => {
     //   setIsAnimateReady(true);
@@ -328,7 +332,7 @@ const HomeScreen = ({ navigation }) => {
       }}
     >
       {/* <CitiesList cities={Array.isArray(cities) ? cities : []} onCitySelect={handleCitySelect} selectedCity={selectedCity} /> */}
-      <ExploreScreen  />
+      <ExploreScreen />
     </View>
   );
   return (
@@ -509,7 +513,7 @@ const HomeScreen = ({ navigation }) => {
           borderTopEndRadius: 30,
 
           overflow: "hidden",
-          paddingTop:30
+          paddingTop: 30,
         }}
       >
         {/* <LinearGradient
@@ -567,26 +571,27 @@ const HomeScreen = ({ navigation }) => {
                   // disabled={isLoading}
                   borderWidth={false}
                   isFlexCol
-                  
                 />
               </AnimatesAs.View>
-              {storeDataStore.storeData.isOrderLaterSupport && <View
-                style={{
-                  marginVertical: 20,
-                  borderWidth: 1,
-                  borderColor: themeStyle.WHITE_COLOR,
-                  borderRadius: 30,
-                  padding: 10,
-                  alignItems: "center",
-                  justifyContent: "center",
-                  width: 50,
-                  height: 50,
-                }}
-              >
-                <Text style={{ color: themeStyle.WHITE_COLOR, fontSize: 20 }}>
-                  {t("or")}
-                </Text>
-              </View>}
+              {storeDataStore.storeData.isOrderLaterSupport && (
+                <View
+                  style={{
+                    marginVertical: 20,
+                    borderWidth: 1,
+                    borderColor: themeStyle.WHITE_COLOR,
+                    borderRadius: 30,
+                    padding: 10,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    width: 50,
+                    height: 50,
+                  }}
+                >
+                  <Text style={{ color: themeStyle.WHITE_COLOR, fontSize: 20 }}>
+                    {t("or")}
+                  </Text>
+                </View>
+              )}
               {storeDataStore.storeData.isOrderLaterSupport && (
                 <AnimatesAs.View
                   style={{

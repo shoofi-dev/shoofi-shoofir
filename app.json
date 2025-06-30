@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "shoofi",
-    "slug": "shoofi",
+    "name": "Shoofi Shoofir",
+    "slug": "Shoofi Shoofir",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -34,7 +34,7 @@
     "ios": {
       "buildNumber": "1.0.0",
       "supportsTablet": true,
-      "bundleIdentifier": "com.shoofi.shopping"
+      "bundleIdentifier": "com.shoofi.shoofir"
     },
     "android": {
       "versionCode": 1,
@@ -43,7 +43,7 @@
         "backgroundColor": "#FFFFFF",
         "resizeMode":"cover"
       },
-      "package": "com.shoofi.shopping",
+      "package": "com.shoofi.shoofir",
       "config": {
         "googleMaps": {
           "apiKey": "AIzaSyD0CSVYW-UxSDEnderEtAB9YDmYYZLu8q8"

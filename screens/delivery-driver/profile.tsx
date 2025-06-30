@@ -70,19 +70,33 @@ const DeliveryDriverProfile = observer(() => {
 
       await deliveryDriverStore.updateProfile(userDetailsStore.userDetails.customerId, updateData);
       setEditing(false);
-      Alert.alert('Success', 'Profile updated successfully');
+      Alert.alert('نجح', 'تم تحديث الملف الشخصي بنجاح');
     } catch (error) {
-      Alert.alert('Error', 'Failed to update profile');
+      Alert.alert('خطأ', 'فشل في تحديث الملف الشخصي');
+    }
+  };
+
+  const updateActiveStatus = async (value: boolean) => {
+    console.log("xxx", value)
+    if (!userDetailsStore.userDetails?.customerId) return;
+    try {
+      await deliveryDriverStore.updateProfile(userDetailsStore.userDetails.customerId, {
+        ...deliveryDriverStore.profile,
+        isActive: value,
+      });
+      setFormData((prev) => ({ ...prev, isActive: value }));
+    } catch (error) {
+      Alert.alert('خطأ', 'فشل في تحديث الحالة');
     }
   };
 
   const handleLogout = () => {
     Alert.alert(
-      'Logout',
-      'Are you sure you want to logout?',
+      'تسجيل الخروج',
+      'هل أنت متأكد من تسجيل الخروج؟',
       [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Logout', style: 'destructive', onPress: () => {
+        { text: 'إلغاء', style: 'cancel' },
+        { text: 'تسجيل الخروج', style: 'destructive', onPress: () => {
           // Handle logout logic here
           authStore.logOut();
           navigation.navigate('login' as never);
@@ -92,19 +106,19 @@ const DeliveryDriverProfile = observer(() => {
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('he-IL');
+    return new Date(dateString).toLocaleDateString('ar-SA');
   };
 
   if (deliveryDriverStore.profileLoading) {
     return (
       <View style={styles.container}>
         <DeliveryDriverHeader 
-          driverName="Driver"
+          driverName="سائق"
           totalOrders={0}
           activeOrders={0}
         />
         <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>Loading profile...</Text>
+          <Text style={styles.loadingText}>جاري تحميل الملف الشخصي...</Text>
         </View>
       </View>
     );
@@ -114,12 +128,12 @@ const DeliveryDriverProfile = observer(() => {
     return (
       <View style={styles.container}>
         <DeliveryDriverHeader 
-          driverName="Driver"
+          driverName="سائق"
           totalOrders={0}
           activeOrders={0}
         />
         <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>Profile not found</Text>
+          <Text style={styles.errorText}>الملف الشخصي غير موجود</Text>
         </View>
       </View>
     );
@@ -128,9 +142,11 @@ const DeliveryDriverProfile = observer(() => {
   return (
     <View style={styles.container}>
       <DeliveryDriverHeader 
-        driverName={deliveryDriverStore.profile.fullName || 'Driver'}
+        driverName={deliveryDriverStore.profile.fullName || 'سائق'}
         totalOrders={deliveryDriverStore.profile.totalDeliveries || 0}
         activeOrders={0}
+        isActive={formData.isActive}
+        onToggleActive={updateActiveStatus}
       />
       
       <ScrollView style={styles.content}>
@@ -138,14 +154,14 @@ const DeliveryDriverProfile = observer(() => {
         <View style={styles.profileHeader}>
           <View style={styles.avatarContainer}>
             <Text style={styles.avatarText}>
-              {deliveryDriverStore.profile.fullName?.charAt(0)?.toUpperCase() || 'D'}
+              {deliveryDriverStore.profile.fullName?.charAt(0)?.toUpperCase() || 'س'}
             </Text>
           </View>
           <Text style={styles.driverName}>{deliveryDriverStore.profile.fullName}</Text>
           <Text style={styles.driverPhone}>{deliveryDriverStore.profile.phone}</Text>
           {deliveryDriverStore.profile.rating && (
             <View style={styles.ratingContainer}>
-              <Text style={styles.ratingText}>Rating: {deliveryDriverStore.profile.rating.toFixed(1)} ⭐</Text>
+              <Text style={styles.ratingText}>التقييم: {deliveryDriverStore.profile.rating.toFixed(1)} ⭐</Text>
             </View>
           )}
         </View>
@@ -156,28 +172,29 @@ const DeliveryDriverProfile = observer(() => {
             style={[styles.toggleButton, !editing && styles.activeToggle]}
             onPress={() => setEditing(false)}
           >
-            <Text style={[styles.toggleText, !editing && styles.activeToggleText]}>View</Text>
+            <Text style={[styles.toggleText, !editing && styles.activeToggleText]}>عرض</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.toggleButton, editing && styles.activeToggle]}
             onPress={() => setEditing(true)}
           >
-            <Text style={[styles.toggleText, editing && styles.activeToggleText]}>Edit</Text>
+            <Text style={[styles.toggleText, editing && styles.activeToggleText]}>تعديل</Text>
           </TouchableOpacity>
         </View>
 
         {/* Personal Information */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Personal Information</Text>
+          <Text style={styles.sectionTitle}>المعلومات الشخصية</Text>
           <View style={styles.infoCard}>
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Full Name</Text>
+              <Text style={styles.label}>الاسم الكامل</Text>
               {editing ? (
                 <TextInput
                   style={styles.input}
                   value={formData.fullName}
                   onChangeText={(text) => setFormData({...formData, fullName: text})}
-                  placeholder="Enter your full name"
+                  placeholder="أدخل اسمك الكامل"
+                  textAlign="right"
                 />
               ) : (
                 <Text style={styles.value}>{deliveryDriverStore.profile.fullName}</Text>
@@ -185,14 +202,15 @@ const DeliveryDriverProfile = observer(() => {
             </View>
 
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Phone Number</Text>
+              <Text style={styles.label}>رقم الهاتف</Text>
               {editing ? (
                 <TextInput
                   style={styles.input}
                   value={formData.phone}
                   onChangeText={(text) => setFormData({...formData, phone: text})}
-                  placeholder="Enter your phone number"
+                  placeholder="أدخل رقم هاتفك"
                   keyboardType="phone-pad"
+                  textAlign="right"
                 />
               ) : (
                 <Text style={styles.value}>{deliveryDriverStore.profile.phone}</Text>
@@ -200,22 +218,23 @@ const DeliveryDriverProfile = observer(() => {
             </View>
 
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Email</Text>
+              <Text style={styles.label}>البريد الإلكتروني</Text>
               {editing ? (
                 <TextInput
                   style={styles.input}
                   value={formData.email}
                   onChangeText={(text) => setFormData({...formData, email: text})}
-                  placeholder="Enter your email"
+                  placeholder="أدخل بريدك الإلكتروني"
                   keyboardType="email-address"
+                  textAlign="right"
                 />
               ) : (
-                <Text style={styles.value}>{deliveryDriverStore.profile.email || 'Not provided'}</Text>
+                <Text style={styles.value}>{deliveryDriverStore.profile.email || 'غير محدد'}</Text>
               )}
             </View>
 
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Active Status</Text>
+              <Text style={styles.label}>الحالة النشطة</Text>
               {editing ? (
                 <Switch
                   value={formData.isActive}
@@ -225,7 +244,7 @@ const DeliveryDriverProfile = observer(() => {
                 />
               ) : (
                 <Text style={[styles.value, { color: deliveryDriverStore.profile.isActive ? colors.green : colors.red }]}>
-                  {deliveryDriverStore.profile.isActive ? 'Active' : 'Inactive'}
+                  {deliveryDriverStore.profile.isActive ? 'نشط' : 'غير نشط'}
                 </Text>
               )}
             </View>
@@ -233,81 +252,84 @@ const DeliveryDriverProfile = observer(() => {
         </View>
 
         {/* Vehicle Information */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Vehicle Information</Text>
+        {/* <View style={styles.section}>
+          <Text style={styles.sectionTitle}>معلومات المركبة</Text>
           <View style={styles.infoCard}>
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Vehicle Type</Text>
+              <Text style={styles.label}>نوع المركبة</Text>
               {editing ? (
                 <TextInput
                   style={styles.input}
                   value={formData.vehicleType}
                   onChangeText={(text) => setFormData({...formData, vehicleType: text})}
-                  placeholder="e.g., Car, Motorcycle, Bicycle"
+                  placeholder="مثال: سيارة، دراجة نارية، دراجة"
+                  textAlign="right"
                 />
               ) : (
-                <Text style={styles.value}>{deliveryDriverStore.profile.vehicleInfo?.type || 'Not provided'}</Text>
+                <Text style={styles.value}>{deliveryDriverStore.profile.vehicleInfo?.type || 'غير محدد'}</Text>
               )}
             </View>
 
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Vehicle Model</Text>
+              <Text style={styles.label}>موديل المركبة</Text>
               {editing ? (
                 <TextInput
                   style={styles.input}
                   value={formData.vehicleModel}
                   onChangeText={(text) => setFormData({...formData, vehicleModel: text})}
-                  placeholder="e.g., Toyota Corolla"
+                  placeholder="مثال: تويوتا كورولا"
+                  textAlign="right"
                 />
               ) : (
-                <Text style={styles.value}>{deliveryDriverStore.profile.vehicleInfo?.model || 'Not provided'}</Text>
+                <Text style={styles.value}>{deliveryDriverStore.profile.vehicleInfo?.model || 'غير محدد'}</Text>
               )}
             </View>
 
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>License Plate</Text>
+              <Text style={styles.label}>رقم اللوحة</Text>
               {editing ? (
                 <TextInput
                   style={styles.input}
                   value={formData.plateNumber}
                   onChangeText={(text) => setFormData({...formData, plateNumber: text})}
-                  placeholder="Enter license plate number"
+                  placeholder="أدخل رقم اللوحة"
                   autoCapitalize="characters"
+                  textAlign="right"
                 />
               ) : (
-                <Text style={styles.value}>{deliveryDriverStore.profile.vehicleInfo?.plateNumber || 'Not provided'}</Text>
+                <Text style={styles.value}>{deliveryDriverStore.profile.vehicleInfo?.plateNumber || 'غير محدد'}</Text>
               )}
             </View>
           </View>
-        </View>
+        </View> */}
 
         {/* Statistics */}
-        <View style={styles.section}>
+        {/* <View style={styles.section}>
           <Text style={styles.sectionTitle}>Statistics</Text>
           <View style={styles.statsCard}>
             <View style={styles.statItem}>
               <Text style={styles.statNumber}>{deliveryDriverStore.profile.totalDeliveries || 0}</Text>
-              <Text style={styles.statLabel}>Total Deliveries</Text>
+              <Text style={styles.statLabel}>إجمالي التوصيلات</Text>
             </View>
             <View style={styles.statItem}>
               <Text style={styles.statNumber}>₪{deliveryDriverStore.profile.totalEarnings || 0}</Text>
-              <Text style={styles.statLabel}>Total Earnings</Text>
+              <Text style={styles.statLabel}>إجمالي الأرباح</Text>
             </View>
             <View style={styles.statItem}>
-              <Text style={styles.statNumber}>{deliveryDriverStore.profile.rating?.toFixed(1) || 'N/A'}</Text>
-              <Text style={styles.statLabel}>Rating</Text>
+              <Text style={styles.statNumber}>{deliveryDriverStore.profile.rating?.toFixed(1) || 'غير متوفر'}</Text>
+              <Text style={styles.statLabel}>التقييم</Text>
             </View>
           </View>
-        </View>
+        </View> */}
 
         {/* Company Information */}
         {deliveryDriverStore.profile.companyName && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Company Information</Text>
+            <Text style={styles.sectionTitle}>معلومات الشركة</Text>
             <View style={styles.infoCard}>
-              <Text style={styles.label}>Company:</Text>
+              <Text style={styles.label}>الشركة:</Text>
               <Text style={styles.value}>{deliveryDriverStore.profile.companyName}</Text>
-              <Text style={styles.label}>Member Since:</Text>
+              <Text style={styles.label}>عضو منذ:</Text>
               <Text style={styles.value}>{formatDate(deliveryDriverStore.profile.createdAt)}</Text>
             </View>
           </View>
@@ -321,7 +343,7 @@ const DeliveryDriverProfile = observer(() => {
                 style={[styles.actionButton, styles.saveButton]}
                 onPress={updateProfile}
               >
-                <Text style={styles.actionButtonText}>Save Changes</Text>
+                <Text style={styles.actionButtonText}>حفظ التغييرات</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.actionButton, styles.cancelButton]}
@@ -341,7 +363,7 @@ const DeliveryDriverProfile = observer(() => {
                   }
                 }}
               >
-                <Text style={styles.actionButtonText}>Cancel</Text>
+                <Text style={styles.actionButtonText}>إلغاء</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -353,7 +375,7 @@ const DeliveryDriverProfile = observer(() => {
             style={[styles.actionButton, styles.logoutButton]}
             onPress={handleLogout}
           >
-            <Text style={styles.actionButtonText}>Logout</Text>
+            <Text style={styles.actionButtonText}>تسجيل الخروج</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -368,7 +390,8 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    paddingHorizontal: 16,
+    marginHorizontal: 16,
+
   },
   loadingContainer: {
     flex: 1,
@@ -463,6 +486,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: colors.text,
     marginBottom: 8,
+    textAlign: 'left',
   },
   infoCard: {
     backgroundColor: colors.white,
@@ -476,10 +500,13 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.gray,
     marginBottom: 4,
+    textAlign: 'left',
   },
   value: {
     fontSize: 16,
     color: colors.text,
+    textAlign: 'left',
+
   },
   input: {
     fontSize: 16,

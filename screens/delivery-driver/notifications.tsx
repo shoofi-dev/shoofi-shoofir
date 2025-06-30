@@ -23,6 +23,10 @@ interface Notification {
   isRead: boolean;
   createdAt: string;
   readAt?: string;
+  data?: {
+    orderId?: string;
+    bookId?: string;
+  };
 }
 
 const DeliveryDriverNotifications = observer(() => {
@@ -36,6 +40,18 @@ const DeliveryDriverNotifications = observer(() => {
   const [offset, setOffset] = useState(0);
   const limit = 20;
 
+  const handleToggleActive = async (value: boolean) => {
+    console.log("xxx2", value)
+    if (!userDetailsStore.userDetails?.customerId) return;
+    try {
+      await deliveryDriverStore.updateProfile(userDetailsStore.userDetails.customerId, {
+        ...deliveryDriverStore.profile,
+        isActive: value,
+      });
+    } catch (error) {
+      Alert.alert('خطأ', 'فشل في تحديث الحالة');
+    }
+  };
   useEffect(() => {
     if (userDetailsStore.userDetails?.customerId) {
       loadNotifications();
@@ -63,7 +79,7 @@ const DeliveryDriverNotifications = observer(() => {
       }
     } catch (error) {
       console.error('Error loading notifications:', error);
-      Alert.alert('Error', 'Failed to load notifications');
+      Alert.alert('خطأ', 'فشل في تحميل الإشعارات');
     } finally {
       setLoading(false);
     }
@@ -77,7 +93,6 @@ const DeliveryDriverNotifications = observer(() => {
 
   const markAsRead = async (notificationId: string) => {
     try {
-      await deliveryDriverStore.markNotificationRead(notificationId);
       // Update local state
       setNotifications(prev => 
         prev.map(notification => 
@@ -95,34 +110,36 @@ const DeliveryDriverNotifications = observer(() => {
         
         if (orderId && bookId && userDetailsStore.userDetails?.customerId) {
           Alert.alert(
-            'Order Action',
-            'Would you like to approve or cancel this order?',
+            'إجراء الطلب',
+            'هل تريد الموافقة على هذا الطلب أو إلغاؤه؟',
             [
+              // {
+              //   text: 'إلغاء',
+              //   style: 'destructive',
+              //   onPress: async () => {
+              //     try {
+              //       await deliveryDriverStore.cancelOrder(orderId, userDetailsStore.userDetails.customerId, bookId);
+              //       Alert.alert('تم إلغاء الطلب');
+              //     } catch (e) {
+              //       Alert.alert('خطأ', 'فشل في إلغاء الطلب');
+              //     }
+              //   },
+              // },
               {
-                text: 'Cancel',
-                style: 'destructive',
-                onPress: async () => {
-                  try {
-                    await deliveryDriverStore.cancelOrder(orderId, userDetailsStore.userDetails.customerId, bookId);
-                    Alert.alert('Order cancelled');
-                  } catch (e) {
-                    Alert.alert('Error', 'Failed to cancel order');
-                  }
-                },
-              },
-              {
-                text: 'Approve',
+                text: 'موافقة',
                 style: 'default',
                 onPress: async () => {
                   try {
                     await deliveryDriverStore.approveOrder(orderId, userDetailsStore.userDetails.customerId, bookId);
-                    Alert.alert('Order approved');
+                    await deliveryDriverStore.markNotificationRead(notificationId);
+                    await loadNotifications(true);
+                    Alert.alert('تمت الموافقة على الطلب');
                   } catch (e) {
-                    Alert.alert('Error', 'Failed to approve order');
+                    Alert.alert('خطأ', 'فشل في الموافقة على الطلب');
                   }
                 },
               },
-              { text: 'Dismiss', style: 'cancel' },
+              { text: 'إغلاق', style: 'cancel' },
             ]
           );
         }
@@ -138,12 +155,12 @@ const DeliveryDriverNotifications = observer(() => {
     const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
     
     if (diffInHours < 1) {
-      return 'Just now';
+      return 'الآن';
     } else if (diffInHours < 24) {
-      return `${diffInHours}h ago`;
+      return `منذ ${diffInHours} ساعة`;
     } else {
       const diffInDays = Math.floor(diffInHours / 24);
-      return `${diffInDays}d ago`;
+      return `منذ ${diffInDays} يوم`;
     }
   };
 
@@ -187,9 +204,7 @@ const DeliveryDriverNotifications = observer(() => {
       onPress={() => markAsRead(notification._id)}
     >
       <View style={styles.notificationHeader}>
-        <Text style={styles.notificationIcon}>
-          {getNotificationIcon(notification.type)}
-        </Text>
+   
         <View style={styles.notificationInfo}>
           <Text style={styles.notificationTitle}>{notification.title}</Text>
           <Text style={styles.notificationTime}>
@@ -199,6 +214,9 @@ const DeliveryDriverNotifications = observer(() => {
         {!notification.isRead && (
           <View style={[styles.unreadDot, { backgroundColor: getNotificationColor(notification.type) }]} />
         )}
+             <Text style={styles.notificationIcon}>
+          {getNotificationIcon(notification.type)}
+        </Text>
       </View>
       <Text style={styles.notificationMessage}>{notification.message}</Text>
     </TouchableOpacity>
@@ -207,14 +225,17 @@ const DeliveryDriverNotifications = observer(() => {
   return (
     <View style={styles.container}>
       <DeliveryDriverHeader 
-        driverName={deliveryDriverStore.profile?.fullName || userDetailsStore.userDetails?.name || 'Driver'}
+        driverName={deliveryDriverStore.profile?.fullName || userDetailsStore.userDetails?.name || 'السائق'}
         totalOrders={deliveryDriverStore.totalOrders}
         activeOrders={deliveryDriverStore.activeOrdersCount}
+        isActive={!!deliveryDriverStore.profile?.isActive}
+        onToggleActive={handleToggleActive}
+        hasUnreadNotifications={deliveryDriverStore.unreadNotificationsCount > 0}
       />
       
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Notifications</Text>
-        <TouchableOpacity
+        <Text style={styles.headerTitle}>الإشعارات</Text>
+        {/* <TouchableOpacity
           style={styles.markAllReadButton}
           onPress={() => {
             // Mark all notifications as read
@@ -225,8 +246,8 @@ const DeliveryDriverNotifications = observer(() => {
             });
           }}
         >
-          <Text style={styles.markAllReadText}>Mark all read</Text>
-        </TouchableOpacity>
+          <Text style={styles.markAllReadText}>تحديد الكل كمقروء</Text>
+        </TouchableOpacity> */}
       </View>
 
       <ScrollView
@@ -249,16 +270,16 @@ const DeliveryDriverNotifications = observer(() => {
         ) : (
           <View style={styles.emptyContainer}>
             <Text style={styles.emptyIcon}>📢</Text>
-            <Text style={styles.emptyTitle}>No notifications</Text>
+            <Text style={styles.emptyTitle}>لا توجد إشعارات</Text>
             <Text style={styles.emptyMessage}>
-              You're all caught up! New notifications will appear here.
+              أنت محدث! ستظهر الإشعارات الجديدة هنا.
             </Text>
           </View>
         )}
         
         {loading && notifications.length > 0 && (
           <View style={styles.loadingContainer}>
-            <Text style={styles.loadingText}>Loading more notifications...</Text>
+            <Text style={styles.loadingText}>جاري تحميل المزيد من الإشعارات...</Text>
           </View>
         )}
       </ScrollView>
@@ -308,6 +329,8 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderLeftWidth: 4,
     borderLeftColor: colors.lightGray,
+    left:10,
+    right:10,
   },
   unreadNotification: {
     borderLeftColor: colors.primary,
@@ -324,6 +347,7 @@ const styles = StyleSheet.create({
   },
   notificationInfo: {
     flex: 1,
+    alignItems: 'flex-start',
   },
   notificationTitle: {
     fontSize: 16,
@@ -339,11 +363,13 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
+    alignSelf: 'flex-start',
   },
   notificationMessage: {
     fontSize: 14,
     color: colors.text,
     lineHeight: 20,
+    textAlign: 'left',
   },
   emptyContainer: {
     flex: 1,

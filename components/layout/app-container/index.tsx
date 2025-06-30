@@ -245,12 +245,12 @@ const AppContainer = () => {
             zIndex: 1000,
           }}
         >
-          {!hideHHeaderScreens.includes(currentRouteName) &&
+          {/* {!hideHHeaderScreens.includes(currentRouteName) &&
             (userDetailsStore.isAdmin() ? (
               <Header />
             ) : (
               <TopBar  />
-            ))}
+            ))} */}
           <MainStackNavigator />
           {renderImage()}
         </View>

@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Alert,
   RefreshControl,
+  I18nManager,
 } from 'react-native';
 import { observer } from 'mobx-react';
 import { useNavigation } from '@react-navigation/native';
@@ -16,6 +17,9 @@ import DeliveryDriverHeader from '../../components/delivery-driver/DeliveryDrive
 import OrderCard from '../../components/delivery-driver/OrderCard';
 import StatusBadge from '../../components/delivery-driver/StatusBadge';
 import { colors } from '../../styles/colors';
+
+// Force RTL layout
+I18nManager.forceRTL(true);
 
 const DeliveryDriverDashboard = observer(() => {
   const navigation = useNavigation();
@@ -41,30 +45,30 @@ const DeliveryDriverDashboard = observer(() => {
 
     switch (action) {
       case 'pickup':
-        confirmMessage = 'Confirm that you have picked up this order?';
+        confirmMessage = 'تأكيد استلام هذا الطلب؟';
         break;
       case 'deliver':
-        confirmMessage = 'Confirm that you have delivered this order?';
+        confirmMessage = 'تأكيد توصيل هذا الطلب؟';
         break;
       case 'cancel':
-        confirmMessage = 'Are you sure you want to cancel this order?';
+        confirmMessage = 'هل أنت متأكد من إلغاء هذا الطلب؟';
         break;
     }
 
     Alert.alert(
-      'Confirm Action',
+      'تأكيد الإجراء',
       confirmMessage,
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: 'إلغاء', style: 'cancel' },
         { 
-          text: 'Confirm', 
+          text: 'تأكيد', 
           onPress: async () => {
             try {
               const driverId = userDetailsStore.userDetails?.customerId;
               const bookId = order.bookId;
               
               if (!driverId || !bookId) {
-                Alert.alert('Error', 'Missing driver ID or book ID');
+                Alert.alert('خطأ', 'معرف السائق أو معرف الطلب مفقود');
                 return;
               }
 
@@ -83,9 +87,9 @@ const DeliveryDriverDashboard = observer(() => {
               if (userDetailsStore.userDetails?.customerId) {
                 deliveryDriverStore.getOrders(userDetailsStore.userDetails.customerId);
               }
-              Alert.alert('Success', 'Order status updated successfully');
+              Alert.alert('نجح', 'تم تحديث حالة الطلب بنجاح');
             } catch (error) {
-              Alert.alert('Error', 'Failed to update order status');
+              Alert.alert('خطأ', 'فشل في تحديث حالة الطلب');
             }
           }
         },
@@ -95,12 +99,12 @@ const DeliveryDriverDashboard = observer(() => {
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case '1': return 'Pending';
-      case '2': return 'Assigned';
-      case '3': return 'Picked Up';
-      case '0': return 'Delivered';
-      case '-1': return 'Cancelled';
-      default: return 'Unknown';
+      case '1': return 'في الانتظار';
+      case '2': return 'تم التعيين';
+      case '3': return 'تم الاستلام';
+      case '0': return 'تم التوصيل';
+      case '-1': return 'ملغي';
+      default: return 'غير معروف';
     }
   };
 
@@ -115,12 +119,27 @@ const DeliveryDriverDashboard = observer(() => {
     }
   };
 
+  const handleToggleActive = async (value: boolean) => {
+    console.log("xxx", value)
+    if (!userDetailsStore.userDetails?.customerId) return;
+    try {
+      await deliveryDriverStore.updateProfile(userDetailsStore.userDetails.customerId, {
+        ...deliveryDriverStore.profile,
+        isActive: value,
+      });
+    } catch (error) {
+      Alert.alert('خطأ', 'فشل في تحديث الحالة');
+    }
+  };
+
   return (
     <View style={styles.container}>
       <DeliveryDriverHeader 
-        driverName={deliveryDriverStore.profile?.fullName || userDetailsStore.userDetails?.name || 'Driver'}
+        driverName={deliveryDriverStore.profile?.fullName || userDetailsStore.userDetails?.name || 'سائق'}
         totalOrders={deliveryDriverStore.totalOrders}
         activeOrders={deliveryDriverStore.activeOrdersCount}
+        isActive={!!deliveryDriverStore.profile?.isActive}
+        onToggleActive={handleToggleActive}
       />
       
       <View style={styles.tabContainer}>
@@ -129,7 +148,7 @@ const DeliveryDriverDashboard = observer(() => {
           onPress={() => setActiveTab('active')}
         >
           <Text style={[styles.tabText, activeTab === 'active' && styles.activeTabText]}>
-            Active ({deliveryDriverStore.activeOrdersCount})
+            نشط ({deliveryDriverStore.activeOrdersCount})
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -137,7 +156,7 @@ const DeliveryDriverDashboard = observer(() => {
           onPress={() => setActiveTab('completed')}
         >
           <Text style={[styles.tabText, activeTab === 'completed' && styles.activeTabText]}>
-            Completed ({deliveryDriverStore.completedOrdersCount})
+            مكتمل ({deliveryDriverStore.completedOrdersCount})
           </Text>
         </TouchableOpacity>
       </View>
@@ -150,7 +169,7 @@ const DeliveryDriverDashboard = observer(() => {
       >
         {deliveryDriverStore.loading ? (
           <View style={styles.loadingContainer}>
-            <Text style={styles.loadingText}>Loading orders...</Text>
+            <Text style={styles.loadingText}>جاري تحميل الطلبات...</Text>
           </View>
         ) : activeTab === 'active' ? (
           deliveryDriverStore.activeOrders.length > 0 ? (
@@ -164,7 +183,7 @@ const DeliveryDriverDashboard = observer(() => {
             ))
           ) : (
             <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>No active orders</Text>
+              <Text style={styles.emptyText}>لا توجد طلبات نشطة</Text>
             </View>
           )
         ) : (
@@ -179,7 +198,7 @@ const DeliveryDriverDashboard = observer(() => {
             ))
           ) : (
             <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>No completed orders</Text>
+              <Text style={styles.emptyText}>لا توجد طلبات مكتملة</Text>
             </View>
           )
         )}
@@ -214,6 +233,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: colors.gray,
+    textAlign: 'center',
   },
   activeTabText: {
     color: colors.white,
@@ -231,6 +251,7 @@ const styles = StyleSheet.create({
   loadingText: {
     fontSize: 16,
     color: colors.gray,
+    textAlign: 'center',
   },
   emptyContainer: {
     flex: 1,
@@ -241,6 +262,7 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 16,
     color: colors.gray,
+    textAlign: 'center',
   },
 });
 

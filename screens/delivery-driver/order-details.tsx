@@ -58,7 +58,7 @@ const OrderDetailsScreen = observer(() => {
       const orderData = await deliveryDriverStore.getOrderDetails(orderId);
       setOrder(orderData);
     } catch (error) {
-      Alert.alert('Error', 'Failed to fetch order details');
+      Alert.alert('خطأ', 'فشل في جلب تفاصيل الطلب');
       navigation.goBack();
     } finally {
       setLoading(false);
@@ -69,9 +69,9 @@ const OrderDetailsScreen = observer(() => {
     try {
       await deliveryDriverStore.updateOrderStatus(orderId, status);
       fetchOrderDetails();
-      Alert.alert('Success', 'Order status updated successfully');
+      Alert.alert('نجح', 'تم تحديث حالة الطلب بنجاح');
     } catch (error) {
-      Alert.alert('Error', 'Failed to update order status');
+      Alert.alert('خطأ', 'فشل في تحديث حالة الطلب');
     }
   };
 
@@ -83,7 +83,7 @@ const OrderDetailsScreen = observer(() => {
 
   const handleNavigateToCustomer = () => {
     // This would integrate with a mapping service
-    Alert.alert('Navigation', 'Opening navigation to customer address...');
+    Alert.alert('التنقل', 'جاري فتح التنقل إلى عنوان العميل...');
   };
 
   const handleAction = (action: string) => {
@@ -93,36 +93,36 @@ const OrderDetailsScreen = observer(() => {
     switch (action) {
       case 'pickup':
         newStatus = '3';
-        confirmMessage = 'Confirm that you have picked up this order?';
+        confirmMessage = 'تأكيد أنك قمت بجمع هذا الطلب؟';
         break;
       case 'deliver':
         newStatus = '0';
-        confirmMessage = 'Confirm that you have delivered this order?';
+        confirmMessage = 'تأكيد أنك قمت بتسليم هذا الطلب؟';
         break;
       case 'cancel':
         newStatus = '-1';
-        confirmMessage = 'Are you sure you want to cancel this order?';
+        confirmMessage = 'هل أنت متأكد من أنك تريد إلغاء هذا الطلب؟';
         break;
     }
 
     Alert.alert(
-      'Confirm Action',
+      'تأكيد الإجراء',
       confirmMessage,
       [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Confirm', onPress: () => updateOrderStatus(newStatus) },
+        { text: 'إلغاء', style: 'cancel' },
+        { text: 'تأكيد', onPress: () => updateOrderStatus(newStatus) },
       ]
     );
   };
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case '1': return 'Pending';
-      case '2': return 'Assigned';
-      case '3': return 'Picked Up';
-      case '0': return 'Delivered';
-      case '-1': return 'Cancelled';
-      default: return 'Unknown';
+      case '1': return 'في الانتظار';
+      case '2': return 'تم التعيين';
+      case '3': return 'تم الجمع';
+      case '0': return 'تم التسليم';
+      case '-1': return 'ملغي';
+      default: return 'غير معروف';
     }
   };
 
@@ -141,12 +141,12 @@ const OrderDetailsScreen = observer(() => {
     return (
       <View style={styles.container}>
         <DeliveryDriverHeader 
-          driverName="Driver"
+          driverName="السائق"
           totalOrders={0}
           activeOrders={0}
         />
         <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>Loading order details...</Text>
+          <Text style={styles.loadingText}>جاري تحميل تفاصيل الطلب...</Text>
         </View>
       </View>
     );
@@ -156,12 +156,12 @@ const OrderDetailsScreen = observer(() => {
     return (
       <View style={styles.container}>
         <DeliveryDriverHeader 
-          driverName="Driver"
+          driverName="السائق"
           totalOrders={0}
           activeOrders={0}
         />
         <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>Order not found</Text>
+          <Text style={styles.errorText}>لم يتم العثور على الطلب</Text>
         </View>
       </View>
     );
@@ -170,7 +170,7 @@ const OrderDetailsScreen = observer(() => {
   return (
     <View style={styles.container}>
       <DeliveryDriverHeader 
-        driverName="Driver"
+        driverName="السائق"
         totalOrders={0}
         activeOrders={0}
       />
@@ -179,7 +179,7 @@ const OrderDetailsScreen = observer(() => {
         {/* Order Status */}
         <View style={styles.section}>
           <View style={styles.statusContainer}>
-            <Text style={styles.sectionTitle}>Order Status</Text>
+            <Text style={styles.sectionTitle}>حالة الطلب</Text>
             <StatusBadge 
               status={order.status}
               text={getStatusText(order.status)}
@@ -190,31 +190,31 @@ const OrderDetailsScreen = observer(() => {
 
         {/* Customer Information */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Customer Information</Text>
+          <Text style={styles.sectionTitle}>معلومات العميل</Text>
           <View style={styles.infoCard}>
-            <Text style={styles.label}>Name:</Text>
+            <Text style={styles.label}>الاسم:</Text>
             <Text style={styles.value}>{order.customerName}</Text>
             
-            <Text style={styles.label}>Phone:</Text>
+            <Text style={styles.label}>الهاتف:</Text>
             <TouchableOpacity onPress={handleCallCustomer}>
               <Text style={[styles.value, styles.phoneNumber]}>{order.customerPhone}</Text>
             </TouchableOpacity>
             
-            <Text style={styles.label}>Address:</Text>
+            <Text style={styles.label}>العنوان:</Text>
             <Text style={styles.value}>{order.customerAddress}</Text>
           </View>
         </View>
 
         {/* Store Information */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Store Information</Text>
+          <Text style={styles.sectionTitle}>معلومات المتجر</Text>
           <View style={styles.infoCard}>
-            <Text style={styles.label}>Store:</Text>
+            <Text style={styles.label}>المتجر:</Text>
             <Text style={styles.value}>{order.storeName}</Text>
             
             {order.pickupTime && (
               <>
-                <Text style={styles.label}>Pickup Time:</Text>
+                <Text style={styles.label}>وقت الجمع:</Text>
                 <Text style={styles.value}>{order.pickupTime}</Text>
               </>
             )}
@@ -223,7 +223,7 @@ const OrderDetailsScreen = observer(() => {
 
         {/* Order Items */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Order Items</Text>
+          <Text style={styles.sectionTitle}>عناصر الطلب</Text>
           <View style={styles.itemsCard}>
             {order.items.map((item: any, index: number) => (
               <View key={index} style={styles.itemRow}>
@@ -240,7 +240,7 @@ const OrderDetailsScreen = observer(() => {
               </View>
             ))}
             <View style={styles.totalRow}>
-              <Text style={styles.totalLabel}>Total:</Text>
+              <Text style={styles.totalLabel}>المجموع:</Text>
               <Text style={styles.totalPrice}>₪{order.totalPrice}</Text>
             </View>
           </View>
@@ -249,7 +249,7 @@ const OrderDetailsScreen = observer(() => {
         {/* Order Notes */}
         {order.notes && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Notes</Text>
+            <Text style={styles.sectionTitle}>ملاحظات</Text>
             <View style={styles.notesCard}>
               <Text style={styles.notesText}>{order.notes}</Text>
             </View>
@@ -259,9 +259,9 @@ const OrderDetailsScreen = observer(() => {
         {/* Payment Information */}
         {order.paymentMethod && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Payment</Text>
+            <Text style={styles.sectionTitle}>الدفع</Text>
             <View style={styles.infoCard}>
-              <Text style={styles.label}>Method:</Text>
+              <Text style={styles.label}>الطريقة:</Text>
               <Text style={styles.value}>{order.paymentMethod}</Text>
             </View>
           </View>
@@ -270,20 +270,20 @@ const OrderDetailsScreen = observer(() => {
         {/* Action Buttons */}
         {['2', '3'].includes(order.status) && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Actions</Text>
+            <Text style={styles.sectionTitle}>الإجراءات</Text>
             <View style={styles.actionsContainer}>
               <TouchableOpacity
                 style={[styles.actionButton, styles.callButton]}
                 onPress={handleCallCustomer}
               >
-                <Text style={styles.actionButtonText}>Call Customer</Text>
+                <Text style={styles.actionButtonText}>اتصال بالعميل</Text>
               </TouchableOpacity>
               
               <TouchableOpacity
                 style={[styles.actionButton, styles.navigateButton]}
                 onPress={handleNavigateToCustomer}
               >
-                <Text style={styles.actionButtonText}>Navigate</Text>
+                <Text style={styles.actionButtonText}>التنقل</Text>
               </TouchableOpacity>
               
               {order.status === '2' && (
@@ -291,7 +291,7 @@ const OrderDetailsScreen = observer(() => {
                   style={[styles.actionButton, styles.pickupButton]}
                   onPress={() => handleAction('pickup')}
                 >
-                  <Text style={styles.actionButtonText}>Mark as Picked Up</Text>
+                  <Text style={styles.actionButtonText}>تحديد كمجموع</Text>
                 </TouchableOpacity>
               )}
               
@@ -300,7 +300,7 @@ const OrderDetailsScreen = observer(() => {
                   style={[styles.actionButton, styles.deliverButton]}
                   onPress={() => handleAction('deliver')}
                 >
-                  <Text style={styles.actionButtonText}>Mark as Delivered</Text>
+                  <Text style={styles.actionButtonText}>تحديد كمسلم</Text>
                 </TouchableOpacity>
               )}
               
@@ -308,7 +308,7 @@ const OrderDetailsScreen = observer(() => {
                 style={[styles.actionButton, styles.cancelButton]}
                 onPress={() => handleAction('cancel')}
               >
-                <Text style={styles.actionButtonText}>Cancel Order</Text>
+                <Text style={styles.actionButtonText}>إلغاء الطلب</Text>
               </TouchableOpacity>
             </View>
           </View>

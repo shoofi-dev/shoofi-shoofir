@@ -100,7 +100,8 @@ class DeliveryDriverStore {
   completedOrders: Order[] = [];
   loading: boolean = false;
   refreshing: boolean = false;
-  
+    // Notifications state
+    notifications: Notification[] = [];
   // Profile state
   profile: DriverProfile | null = null;
   profileLoading: boolean = false;
@@ -129,7 +130,9 @@ class DeliveryDriverStore {
   get completedOrdersCount() {
     return this.completedOrders.length;
   }
-
+  get unreadNotificationsCount() {
+    return this.notifications.filter(n => !n.isRead).length;
+  }
   // Orders methods
   getOrdersFromServer = async (driverId: string, statusList?: string[], isAllWeek: boolean = false) => {
     return axiosInstance
@@ -137,7 +140,7 @@ class DeliveryDriverStore {
         `${DELIVERY_DRIVER_API.CONTROLLER}/${DELIVERY_DRIVER_API.GET_ORDERS_LIST}`,
         {
           customerId: driverId,
-          statusList: statusList || ['1', '2', '3', '0', '-1'],
+          statusList: statusList || ['2', '3', '0', '-1'],
           isAllWeek,
         }
       )
@@ -152,7 +155,7 @@ class DeliveryDriverStore {
       const ordersData = await this.getOrdersFromServer(driverId, statusList, isAllWeek);
       runInAction(() => {
         this.orders = ordersData || [];
-        this.activeOrders = this.orders.filter(order => ['2', '3'].includes(order.status));
+        this.activeOrders = this.orders.filter(order => ['1','2', '3'].includes(order.status));
         this.completedOrders = this.orders.filter(order => ['0', '-1'].includes(order.status));
       });
       return ordersData;
@@ -275,13 +278,14 @@ class DeliveryDriverStore {
         profileData
       )
       .then(function (response: any) {
-        return response.data;
+        return response;
       });
   };
 
   updateProfile = async (driverId: string, profileData: Partial<DriverProfile>) => {
     try {
       const updatedProfile = await this.updateProfileServer(driverId, profileData);
+      console.log("updatedProfile", updatedProfile)
       runInAction(() => {
         this.profile = updatedProfile;
       });
@@ -484,6 +488,9 @@ class DeliveryDriverStore {
   getNotifications = async (driverId: string, limit: number = 20, offset: number = 0) => {
     try {
       const notificationsData = await this.getNotificationsFromServer(driverId, limit, offset);
+      runInAction(() => {
+        this.notifications = notificationsData.notifications || [];
+      });
       return notificationsData;
     } catch (error) {
       console.error('Error fetching notifications:', error);
@@ -623,6 +630,9 @@ class DeliveryDriverStore {
   };
 
   startOrder = async (orderId: string, driverId: string, bookId: string) => {
+    console.log("driverId", driverId)
+    console.log("orderId", orderId)
+    console.log("bookId", bookId)
     try {
       const result = await this.startOrderServer(orderId, driverId, bookId);
       // Update local order status

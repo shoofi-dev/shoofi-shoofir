@@ -27,8 +27,8 @@ axiosInstance.interceptors.request.use(
     
     // config.headers["app-name"] = APP_NAME;
     const storeDB = await AsyncStorage.getItem("@storage_storeDB");
-    config.headers["app-name"] = config.headers["app-name"] || storeDB || APP_NAME;
-    config.headers["app-type"] = "shoofi-partner";
+    config.headers["app-name"] = "delivery-company";
+    config.headers["app-type"] = "shoofi-shoofir";
 
     return config;
   },

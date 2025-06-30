@@ -177,7 +177,7 @@ const VerifyCodeScreen = ({ route }) => {
                 if (cartStore.getProductsCount() > 0) {
                   navigation.navigate("cart");
                 } else {
-                  navigation.navigate("homeScreen");
+                  navigation.navigate("delivery-driver-dashboard");
                 }
               });
           } else {
@@ -197,7 +197,7 @@ const VerifyCodeScreen = ({ route }) => {
   };
 
   const handleLogoPress = () => {
-    navigation.navigate("homeScreen");
+    navigation.navigate("delivery-driver-dashboard");
   };
 
   return (

@@ -63,19 +63,7 @@ export default function BottomTabBar({ state, navigation }) {
       setIsLoading(false);
     });
   };
-  useEffect(() => {
-    if(authStore.isLoggedIn() && !userDetailsStore.isAdmin()){
-    setIsLoading(true);
-    getOrders();
-    setTimeout(() => {
-      getOrders();
-    }, 15 * 1000);
-    const interval = setInterval(() => {
-        getOrders();
-      }, 30 * 1000);
-      return () => clearInterval(interval);
-    }
-  }, []);
+
 
   return (
     <View style={[styles.wrapperContainer, {width: ordersList.length > 0 ?  "95%" : "100%"}]}>
