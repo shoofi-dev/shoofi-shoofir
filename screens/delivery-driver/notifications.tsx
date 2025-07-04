@@ -67,12 +67,12 @@ const DeliveryDriverNotifications = observer(() => {
       
       const response = await deliveryDriverStore.getNotifications(userDetailsStore.userDetails?.customerId, limit, currentOffset);
       
-      if (response && response.notifications) {
+      if (response && response) {
         if (isRefresh) {
-          setNotifications(response.notifications);
+          setNotifications(response);
           setOffset(limit);
         } else {
-          setNotifications(prev => [...prev, ...response.notifications]);
+          setNotifications(prev => [...prev, ...response]);
           setOffset(prev => prev + limit);
         }
         setHasMore(response.hasMore);

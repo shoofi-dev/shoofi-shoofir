@@ -1,9 +1,8 @@
-import { Buffer } from 'buffer'
     
 export function toBase64(input) {
-  return Buffer.from(JSON.stringify(input), 'utf-8').toString('base64')
+  return input
 }
 
 export function fromBase64(encoded) {
-  return Buffer.from(encoded, 'base64').toString('utf8')
+  return encoded
 }

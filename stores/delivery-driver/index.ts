@@ -156,7 +156,7 @@ class DeliveryDriverStore {
       runInAction(() => {
         this.orders = ordersData || [];
         this.activeOrders = this.orders.filter(order => ['1','2', '3'].includes(order.status));
-        this.completedOrders = this.orders.filter(order => ['0', '-1'].includes(order.status));
+        this.completedOrders = this.orders.filter(order => ['4', '-1'].includes(order.status));
       });
       return ordersData;
     } catch (error) {
@@ -176,7 +176,7 @@ class DeliveryDriverStore {
       runInAction(() => {
         this.orders = ordersData || [];
         this.activeOrders = this.orders.filter(order => ['2', '3'].includes(order.status));
-        this.completedOrders = this.orders.filter(order => ['0', '-1'].includes(order.status));
+        this.completedOrders = this.orders.filter(order => ['4', '-1'].includes(order.status));
       });
       return ordersData;
     } catch (error) {
@@ -488,8 +488,9 @@ class DeliveryDriverStore {
   getNotifications = async (driverId: string, limit: number = 20, offset: number = 0) => {
     try {
       const notificationsData = await this.getNotificationsFromServer(driverId, limit, offset);
+      console.log("notificationsData", notificationsData)
       runInAction(() => {
-        this.notifications = notificationsData.notifications || [];
+        this.notifications = notificationsData || [];
       });
       return notificationsData;
     } catch (error) {

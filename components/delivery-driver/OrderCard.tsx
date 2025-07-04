@@ -177,7 +177,7 @@ const OrderCard: React.FC<OrderCardProps> = ({
     
   };
   const getOrderId= () => {
-    const orderIdSplit = order.order?.orderId.split("-");
+    const orderIdSplit = order.order?.orderId?.split("-");
     const idPart1 = orderIdSplit[0];
     const idPart2 = orderIdSplit[2];
     return `${idPart1}-${idPart2}`;

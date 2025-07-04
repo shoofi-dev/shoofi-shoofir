@@ -3,9 +3,7 @@ import "./translations/i18n";
 import { Asset } from "expo-asset";
 import * as Notifications from "expo-notifications";
 import { captureRef } from "react-native-view-shot";
-import EscPosPrinter, {
-  getPrinterSeriesByName,
-} from "react-native-esc-pos-printer";
+
 import * as Font from "expo-font";
 import Constants from "expo-constants";
 import RNRestart from "react-native-restart";
@@ -59,7 +57,6 @@ import {
   registerForPushNotificationsAsync,
   schedulePushNotification,
 } from "./utils/notification";
-import { testPrint } from "./helpers/printer/print";
 import { APP_NAME, ROLES, SHIPPING_METHODS, cdnUrl } from "./consts/shared";
 import _useAppCurrentState from "./hooks/use-app-current-state";
 import OrderInvoiceCMP from "./components/order-invoice";
@@ -126,38 +123,14 @@ const App = () => {
     shoofiAdminStore,
     extrasStore
   } = useContext(StoreContext);
-  // const { t } = useTranslation();
-  // const invoiceRef = useRef();
-  const invoicesRef = useRef([]);
-
-  // const {
-  //   latitude,
-  //   longitude,
-  //   errorMsg,
-  //   isLoading,
-  //   requestLocationPermission,
-  //   getCurrentLocation
-  // } = useLocation();
-
-  // Request permission and get location when component mounts
-  // useEffect(() => {
-  //   requestLocationPermission();
-  // }, []);
 
   const [assetsIsReady, setAssetsIsReady] = useState(false);
   const [appIsReady, setAppIsReady] = useState(false);
   const [isExtraLoadFinished, setIsExtraLoadFinished] = useState(false);
   const [isFontReady, setIsFontReady] = useState(false);
-  const [isPrinting, setIsPrinting] = useState(false);
   const [expoPushToken, setExpoPushToken] = useState("123");
   const [notification, setNotification] = useState(null);
-  const [invoiceOrder, setInvoiceOrder] = useState(null);
-  const [printer, setPrinter] = useState(null);
-  const [printOrdersQueue, setPrintOrdersQueue] = useState([]);
-  const [invoiceScrollViewSize, setInvoiceScrollViewSize] = useState({
-    w: 0,
-    h: 0,
-  });
+
 
   const notificationListener = useRef(null);
   const responseListener = useRef(null);
@@ -190,40 +163,33 @@ const App = () => {
     }
   }, [userDetailsStore.userDetails?.customerId, webScoketURL]);
 
-  const connectionStatus = {
-    [ReadyState.CONNECTING]: "Connecting",
-    [ReadyState.OPEN]: "Open",
-    [ReadyState.CLOSING]: "Closing",
-    [ReadyState.CLOSED]: "Closed",
-    [ReadyState.UNINSTANTIATED]: "Uninstantiated",
-  }[readyState];
 
-  const repeatNotification = () => {
-      schedulePushNotification({
-        data: {
-          orderId: 1,
-        },
-      });
+  // const repeatNotification = () => {
+  //     schedulePushNotification({
+  //       data: {
+  //         orderId: 1,
+  //       },
+  //     });
       
-    const tmpRepeatNotificationInterval = setInterval(() => {
-      schedulePushNotification({
-        data: {
-          orderId: 1,
-        },
-      });
-    }, 30000);
-    storeDataStore.setRepeatNotificationInterval(tmpRepeatNotificationInterval);
-  };
+  //   const tmpRepeatNotificationInterval = setInterval(() => {
+  //     schedulePushNotification({
+  //       data: {
+  //         orderId: 1,
+  //       },
+  //     });
+  //   }, 30000);
+  //   storeDataStore.setRepeatNotificationInterval(tmpRepeatNotificationInterval);
+  // };
 
-  useEffect(() => {
-    const subscription = Notifications.addNotificationResponseReceivedListener(
-      (response) => {
-        clearInterval(storeDataStore.repeatNotificationInterval);
-        storeDataStore.setRepeatNotificationInterval(null);
-      }
-    );
-    return () => subscription.remove();
-  }, [storeDataStore.repeatNotificationInterval]);
+  // useEffect(() => {
+  //   const subscription = Notifications.addNotificationResponseReceivedListener(
+  //     (response) => {
+  //       clearInterval(storeDataStore.repeatNotificationInterval);
+  //       storeDataStore.setRepeatNotificationInterval(null);
+  //     }
+  //   );
+  //   return () => subscription.remove();
+  // }, [storeDataStore.repeatNotificationInterval]);
 
   useEffect(() => {
     if (userDetailsStore.isAdmin() || authStore.isLoggedIn() && userDetailsStore.userDetails) {
@@ -259,200 +225,37 @@ const App = () => {
     }
   }, [userDetailsStore.userDetails]);
 
-  const listenToNewOrder = async () => {
-    if (
-      (lastJsonMessage && lastJsonMessage.type === "new order") ||
-      (lastJsonMessage && lastJsonMessage.type === "order viewed updated")
-    ) {
-      console.log("listenToNewOrder")
-      await ordersStore.getNotViewdOrders(userDetailsStore.isAdmin(ROLES.all));
-    }
-    if (
-      lastJsonMessage &&
-      (lastJsonMessage.type === "order viewed updated" ||
-        lastJsonMessage.type === "print not printed") &&
-      userDetailsStore.isAdmin()
-    ) {
-      if (userDetailsStore.isAdmin(ROLES.all) && userDetailsStore.isAdmin(ROLES.print) && !isPrinting) {
-        printNotPrinted();
-      }
-      if (
-        !storeDataStore.repeatNotificationInterval &&
-        lastJsonMessage.type !== "print not printed"
-      ) {
-        repeatNotification();
-      }
-    }
-  };
+  // const listenToNewOrder = async () => {
+  //   if (
+  //     (lastJsonMessage && lastJsonMessage.type === "new order") ||
+  //     (lastJsonMessage && lastJsonMessage.type === "order viewed updated")
+  //   ) {
+  //     console.log("listenToNewOrder")
+  //     await ordersStore.getNotViewdOrders(userDetailsStore.isAdmin(ROLES.all));
+  //   }
+  //   if (
+  //     lastJsonMessage &&
+  //     (lastJsonMessage.type === "order viewed updated" ||
+  //       lastJsonMessage.type === "print not printed") &&
+  //     userDetailsStore.isAdmin()
+  //   ) {
+  //     if (userDetailsStore.isAdmin(ROLES.all) && userDetailsStore.isAdmin(ROLES.print) && !isPrinting) {
+  //       printNotPrinted();
+  //     }
+  //     if (
+  //       !storeDataStore.repeatNotificationInterval &&
+  //       lastJsonMessage.type !== "print not printed"
+  //     ) {
+  //       repeatNotification();
+  //     }
+  //   }
+  // };
 
-  const getInvoiceSP = async (queue) => {
-    const SPs = [];
-    for (let i = 0; i < queue.length; i++) {
-      const pizzaCount = getPizzaCount(queue[i]?.order?.items);
-      const invoiceRefName = invoicesRef.current[queue[i].orderId + "name"];
-      const resultName = await captureRef(invoiceRefName, {
-        result: "data-uri",
-        width: pixels,
-        quality: 1,
-        format: "png",
-      });
-      for (let i = 0; i < pizzaCount; i++) {
-        SPs.push(resultName);
-      }
+  // useEffect(() => {
+  //   listenToNewOrder();
+  // }, [lastJsonMessage, userDetailsStore.userDetails]);
 
-      const invoiceRef = invoicesRef.current[queue[i].orderId];
-      const result = await captureRef(invoiceRef, {
-        result: "data-uri",
-        width: pixels,
-        quality: 1,
-        format: "png",
-      });
-      SPs.push(result);
-    }
-    return SPs;
-  };
-  const printInvoice = async (invoiceRef) => {
-    const result = await captureRef(invoiceRef, {
-      result: "data-uri",
-      width: pixels,
-      quality: 1,
-      format: "png",
-    });
-    const isPrinted = await testPrint(result, printer);
-  };
 
-  const printNotPrinted = async () => {
-    setIsPrinting(true);
-    try {
-      ordersStore
-        .getOrders(
-          true,
-          ["1", "2", "3", "4", "5","6"],
-          null,
-          true,
-          null,
-          null,
-          true
-        )
-        .then(async (res) => {
-          const notPrintedOrderds = res;
-          if (notPrintedOrderds?.length > 0) {
-            setPrintOrdersQueue(notPrintedOrderds.slice(0, 5));
-          } else {
-            setIsPrinting(false);
-          }
-        })
-        .catch((err) => {
-          setIsPrinting(false);
-        });
-    } catch {
-      setIsPrinting(false);
-    }
-  };
-
-  const forLoop = async (queue) => {
-    try {
-      const orderInvoicesPS = await getInvoiceSP(queue);
-      if (userDetailsStore.isAdmin(ROLES.all) && userDetailsStore.isAdmin(ROLES.print)) {
-        const isPrinted = await testPrint(orderInvoicesPS, printer, storeDataStore.storeData?.isDisablePrinter);
-        if (isPrinted) {
-          for (let i = 0; i < queue.length; i++) {
-            await ordersStore.updateOrderPrinted(queue[i]._id, true);
-          }
-          setPrintOrdersQueue([]);
-        }
-        setIsPrinting(false);
-        // printNotPrinted();
-      }
-    } catch {
-      setIsPrinting(false);
-    }
-  };
-
-  useEffect(() => {
-    if (printOrdersQueue.length > 0) {
-      setTimeout(() => {
-        forLoop(printOrdersQueue);
-      }, 1000);
-    } else {
-      setIsPrinting(false);
-    }
-  }, [printOrdersQueue]);
-
-  useEffect(() => {
-    listenToNewOrder();
-  }, [lastJsonMessage, userDetailsStore.userDetails]);
-
-  const initPrinter = async () => {
-    await EscPosPrinter.init({
-      target: storeDataStore.storeData.printerTarget,
-      seriesName: getPrinterSeriesByName("EPOS2_TM_M50"),
-      language: "EPOS2_LANG_EN",
-    })
-      .then(() => console.log("Init success!"))
-      .catch((e) => console.log("Init error:", e.message));
-
-    const printing = new EscPosPrinter.printing();
-    setPrinter(printing);
-  };
-
-  const { currentAppState } = _useAppCurrentState();
-  useEffect(() => {
-    console.log("currentAppState", currentAppState);
-    if (
-      currentAppState === "active" &&
-      authStore.isLoggedIn() &&
-      userDetailsStore.isAdmin() &&
-      appIsReady
-    ) {
-      if (userDetailsStore.isAdmin(ROLES.all) && userDetailsStore.isAdmin(ROLES.print) && !isPrinting) {
-        initPrinter();
-        printNotPrinted();
-      }
-      ordersStore.getNotViewdOrders(userDetailsStore.isAdmin(ROLES.all));
-    }
-  }, [appIsReady, userDetailsStore.userDetails?.phone, currentAppState]);
-
-  // print not printied backup
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (
-        currentAppState === "active" &&
-        authStore.isLoggedIn() &&
-        userDetailsStore.isAdmin() &&
-        appIsReady
-      ) {
-        if (userDetailsStore.isAdmin(ROLES.all) && userDetailsStore.isAdmin(ROLES.print) && !isPrinting) {
-          initPrinter();
-          printNotPrinted();
-        }
-        ordersStore.getNotViewdOrders(userDetailsStore.isAdmin(ROLES.all));
-      }
-    }, 60 * 1000);
-    return () => clearInterval(interval);
-  }, [appIsReady, userDetailsStore.userDetails?.phone, currentAppState]);
-
-  useEffect(() => {
-    if (
-      currentAppState === "active" &&
-      userDetailsStore.isAdmin() &&
-      appIsReady
-    ) {
-      if (ordersStore.notViewdOrders?.length > 0) {
-        if (!storeDataStore.repeatNotificationInterval) {
-          repeatNotification();
-        }
-      } else {
-        clearInterval(storeDataStore.repeatNotificationInterval);
-        storeDataStore.setRepeatNotificationInterval(null);
-      }
-    }
-  }, [
-    ordersStore.notViewdOrders,
-    appIsReady,
-    userDetailsStore.userDetails?.phone,
-    currentAppState,
-  ]);
 
   useEffect(() => {
     if (!I18nManager.isRTL) {
@@ -461,68 +264,11 @@ const App = () => {
     }
   }, []);
 
-  const cacheImages = (images) => {
-    return new Promise((resolve) => {
-      const tempImages = images.map(async (image) => {
-        if (typeof image === "string") {
-          await Image.prefetch(image);
-        } else {
-          await Asset.fromModule(image).downloadAsync();
-        }
-      });
-      resolve(true);
-    });
-  };
-  const cacheImages2 = (images) => {
-    return new Promise(async (resolve) => {
-      for (let index = 0; index < images.length; index++) {
-        const res = await Image.prefetch(images[index]);
-      }
-      resolve(true);
-    });
-  };
-
-  const deleteCreditCardData = async (appversion: string) => {
-    const data = await AsyncStorage.getItem("@storage_CCData");
-    const ccDetails = JSON.parse(data);
-    if (ccDetails && !ccDetails?.cvv) {
-      await AsyncStorage.removeItem("@storage_CCData");
-    }
-  };
-
-  const handleV02 = async (appversion: string) => {
-    if (
-      appversion === "1.0.0" ||
-      appversion === "1.0.1" ||
-      appversion === "1.0.2"
-    ) {
-      setIsOpenUpdateVersionDialog(true);
-      return true;
-    }
-    return false;
-  };
-
-  const handleVersions = async () => {
-    const appVersion = Constants.nativeAppVersion;
-    const currentVersion = await AsyncStorage.getItem("@storage_version");
-    deleteCreditCardData(appVersion);
-    const flag = await handleV02(appVersion);
-    if (flag) {
-      return;
-    }
-    if (
-      !currentVersion ||
-      isLatestGreaterThanCurrent(appVersion, currentVersion)
-    ) {
-      await AsyncStorage.setItem("@storage_version", appVersion?.toString());
-      return;
-    }
-  };
 
   const handleUpdateVersionDialogAnswer = () => {
     // TODO: change to the new app url
     Linking.openURL(
-      "https://sari-apps-lcibm.ondigitalocean.app/api/store/download-app"
+      "https://sari-apps-lcibm.ondigitalocean.app/api/store/download-app/shoofi-shoofir"
     );
   };
 
@@ -554,13 +300,10 @@ const App = () => {
         });
         return;
      }
-     console.log("XXXXXXXXXXA3")
-      const fetchShoofiStoreData = shoofiAdminStore.getStoreData();
-      // const fetchStoresList = shoofiAdminStore.getStoresListData(latitude && longitude ? {lat: '32.109276', lng: '34.963179'} : null);
-      const fetchCategoryList = shoofiAdminStore.getCategoryListData();
+
       const fetchTranslations = translationsStore.getTranslations();
 
-      Promise.all([fetchShoofiStoreData, fetchCategoryList, fetchTranslations]).then(
+      Promise.all([fetchTranslations]).then(
         async (responses) => {
           // const tempHomeSlides = storeDataStore.storeData.home_sliders.map(
           //   (slide) => {
@@ -580,37 +323,13 @@ const App = () => {
           if (authStore.isLoggedIn()) {
       
             const fetchUserDetails = userDetailsStore.getUserDetails();
-            const fetchStoreZCrData = shoofiAdminStore.getStoreZCrData();
             //const fetchOrders = ordersStore.getOrders(userDetailsStore.isAdmin());
             // userDetailsStore.setIsAcceptedTerms(true);
             Promise.all([
               fetchUserDetails,
-              fetchStoreZCrData,
               // fetchOrders,
             ]).then(async (res: any) => {
               const store = res[0];
-              if(store?.appName){
-                console.log("storexxx", store)
-                const storeData = shoofiAdminStore.getStoreById(store.appName);
-                await shoofiAdminStore.setStoreDBName(storeData?.appName || store?.appName);
-                await menuStore.getMenu();
-                await storeDataStore.getStoreData();
-                console.log("storeId", store.appName)
-                
-              }else{
-                const appNameStorage: any = await shoofiAdminStore.getStoreDBName();
-                console.log("appNameStorage", appNameStorage)
-                if(appNameStorage){
-                  // await shoofiAdminStore.setStoreDBName(appNameStorage);
-                  const cartStoreDBName = await cartStore.getCartStoreDBName();
-                  console.log("cartStoreDBName", cartStoreDBName)
-                  if(cartStoreDBName){
-                    await storeDataStore.getStoreData(cartStoreDBName);
-                  }
-                // await menuStore.getMenu();
-                // await storeDataStore.getStoreData();
-                }
-              }
               setTimeout(() => {
                 setAppIsReady(true);
               }, 0);
@@ -655,7 +374,6 @@ const App = () => {
 
   const initApp = async () => {
     if(!cartStore.cartItems.length){
-      console.log("XXXXXXXXXXA4", cartStore.cartItems)
       await shoofiAdminStore.setStoreDBName("");
     }
     prepare();
@@ -863,81 +581,6 @@ const App = () => {
           <View style={{ height: "100%" }}>
             <RootNavigator />
           </View>
-          {userDetailsStore.isAdmin(ROLES.all) &&
-            printOrdersQueue.map((invoice) => {
-              return (
-                <ScrollView
-                  style={{ flex: 1, maxWidth: 820, alignSelf: "center" }}
-                  onContentSizeChange={(width, height) => {
-                    setInvoiceScrollViewSize({ h: height, w: width });
-                  }}
-                  key={invoice.orderId}
-                >
-                  <View
-                    ref={(el) =>
-                      (invoicesRef.current[invoice.orderId + "name"] = el)
-                    }
-                    style={{
-                      width: "100%",
-                      zIndex: 10,
-                      alignItems: "center",
-                      justifyContent: "center",
-                      borderColor: "black",
-                    }}
-                  >
-                    <View
-                      style={{
-                        marginBottom: 15,
-                        borderWidth: 5,
-                        width: "100%",
-                      }}
-                    >
-                      <Text style={{ alignSelf: "center", fontSize: 100 }}>
-                        {invoice.customerDetails.name}
-                      </Text>
-                    </View>
-                    <View
-                      style={{
-                        borderWidth: 5,
-                        marginBottom: 15,
-                        width: "100%",
-                      }}
-                    >
-                      <Text style={{ alignSelf: "center", fontSize: 100 }}>
-                        السعر: {getOrderTotalPrice(invoice)}
-                        {invoice.order?.payment_method &&
-                          invoice?.ccPaymentRefData?.data?.StatusCode == 1 &&
-                          " - א"}
-                      </Text>
-                    </View>
-
-                    <View
-                      style={{
-                        borderWidth: 5,
-                        width: "100%",
-                      }}
-                    >
-                      <Text style={{ alignSelf: "center", fontSize: 100 }}>
-                        {i18n.t(invoice.order.receipt_method)}
-                      </Text>
-                    </View>
-                  </View>
-                  <View style={{ height: 20 }}></View>
-                  <View
-                    ref={(el) => (invoicesRef.current[invoice.orderId] = el)}
-                    style={{
-                      width: "100%",
-
-                      flexDirection: "row",
-                      zIndex: 10,
-                      height: "80%",
-                    }}
-                  >
-                    <OrderInvoiceCMP invoiceOrder={invoice} />
-                  </View>
-                </ScrollView>
-              );
-            })}
           <NewAddressBasedEventDialog />
           <GeneralServerErrorDialog />
           <InterntConnectionDialog isOpen={isOpenInternetConnectionDialog} />

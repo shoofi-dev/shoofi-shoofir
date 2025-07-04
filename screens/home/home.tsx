@@ -81,15 +81,17 @@ const HomeScreen = ({ navigation }) => {
       setTimeout(() => {
         navigation.navigate("login");
       }, 0);
+    }else{
+      setTimeout(() => {
+        navigation.navigate("delivery-driver-dashboard");
+      }, 0);
     }
     // if (!userDetailsStore.isAcceptedTerms) {
     //   setTimeout(() => {
     //     navigation.navigate("terms-and-conditions");
     //   }, 0);
     // }
-      setTimeout(() => {
-        navigation.navigate("delivery-driver-dashboard");
-      }, 0);
+ 
     
     setIsAppReady(true);
     // setTimeout(() => {
