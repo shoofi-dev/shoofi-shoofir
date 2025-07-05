@@ -116,6 +116,8 @@ const DeliveryDriverProfile = observer(() => {
           driverName="سائق"
           totalOrders={0}
           activeOrders={0}
+          isActive={formData.isActive}
+          onToggleActive={updateActiveStatus}
         />
         <View style={styles.loadingContainer}>
           <Text style={styles.loadingText}>جاري تحميل الملف الشخصي...</Text>
@@ -131,6 +133,8 @@ const DeliveryDriverProfile = observer(() => {
           driverName="سائق"
           totalOrders={0}
           activeOrders={0}
+          isActive={formData.isActive}
+          onToggleActive={updateActiveStatus}
         />
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>الملف الشخصي غير موجود</Text>
@@ -371,6 +375,12 @@ const DeliveryDriverProfile = observer(() => {
 
         {/* Logout Button */}
         <View style={styles.section}>
+          <TouchableOpacity
+            style={[styles.actionButton, { backgroundColor: colors.primary, marginBottom: 12 }]}
+            onPress={() => navigation.navigate('driver-payments' as never)}
+          >
+            <Text style={styles.actionButtonText}>عرض الأرباح والمدفوعات</Text>
+          </TouchableOpacity>
           <TouchableOpacity
             style={[styles.actionButton, styles.logoutButton]}
             onPress={handleLogout}

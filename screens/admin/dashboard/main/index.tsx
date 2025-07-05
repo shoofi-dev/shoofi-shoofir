@@ -82,6 +82,12 @@ const DashboardScreen = () => {
           role: undefined,
         },
         {
+          title: "payments",
+          icon: "money",
+          key: "payments",
+          role: undefined,
+        },
+        {
           title: "calander",
           icon: "calendar",
           key: "calander",
@@ -187,6 +193,9 @@ const DashboardScreen = () => {
         break;
       case "store-management":
         navigation.navigate("store-management");
+        break;
+      case "payments":
+        navigation.navigate("driver-payments");
         break;
       case "products-order":
         navigation.navigate("products-order");

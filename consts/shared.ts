@@ -1,4 +1,5 @@
 export const APP_NAME = 'shoofi';
+export const APP_TYPE = 'shoofi-shoofir';
 
 export const ORDER_STATUS = {
   IN_PROGRESS: "1",
